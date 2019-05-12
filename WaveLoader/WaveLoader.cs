@@ -32,6 +32,29 @@ namespace WaveLoader
     /// </remarks>
     public static class WaveLoader
     {
+        /// <summary>
+        /// Creates an Audio Clip from bytes containing wav file data
+        /// </summary>
+        public static AudioClip LoadWaveToAudioClip(byte[] data, string name)
+        {
+            return WaveFile.Load(data, false).ToAudioClip(name);
+        }
+
+        /// <summary>
+        /// Creates an Audio Clip from a wav file on disk
+        /// </summary>
+        public static AudioClip LoadWaveToAudioClip(string path, string name)
+        {
+            return WaveFile.Load(path, false).ToAudioClip(name);
+        }
+
+        /// <summary>
+        /// Creates an Audio Clip from a wav file in a binary asset
+        /// </summary>
+        public static AudioClip LoadWaveToAudioClip(TextAsset binaryAsset, string name)
+        {
+            return WaveFile.Load(binaryAsset.bytes, false).ToAudioClip(name);
+        }
 
         /// <summary>
         /// Creates an Audio Clip from a wave file

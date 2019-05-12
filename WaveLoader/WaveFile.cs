@@ -79,9 +79,9 @@ namespace WaveLoader
         /// <remarks>
         /// Caution: this references the actual backing field
         /// </remarks>
-        public byte[] Data { get; private set; }
+        public ArraySegment<byte> Data { get; private set; }
 
-        public int Samples { get => Data.Length / (BitsPerSample / 8 * Channels); }
+        public int Samples { get => Data.Count / (BitsPerSample / 8 * Channels); }
 
         private WaveFile()
         {
@@ -93,13 +93,21 @@ namespace WaveLoader
         /// </summary>
         public static WaveFile Load(string path)
         {
-            return Load(File.ReadAllBytes(path));
+            return Load(File.ReadAllBytes(path), false);
         }
 
         /// <summary>
         /// Loads a WaveFile from a byte array
         /// </summary>
         public static WaveFile Load(byte[] data)
+        {
+            return Load(data, true);
+        }
+
+        /// <summary>
+        /// Loads a WaveFile from a byte array
+        /// </summary>
+        public static WaveFile Load(byte[] data, bool copyData)
         {
             WaveFile waveFile = new WaveFile();
 
@@ -139,8 +147,18 @@ namespace WaveLoader
                 else if(currentChunkID.Equals("data", StringComparison.Ordinal))
                 {
                     //data chunk holds the actual wave data
-                    waveFile.Data = new byte[currentChunkLength];
-                    Array.Copy(data, i + 8, waveFile.Data, 0, currentChunkLength); //copying is slower and wastes memory but is safer
+
+                    if(copyData) //copying is slower and wastes memory but is safer
+                    {
+                        byte[] newData = new byte[currentChunkLength];
+                        Array.Copy(data, i + 8, newData, 0, currentChunkLength); 
+                        waveFile.Data = new ArraySegment<byte>(newData);
+                    }
+                    else
+                    {
+                        waveFile.Data = new ArraySegment<byte>(data, i + 8, currentChunkLength);
+                    }
+
                 }
                 else
                 {
@@ -184,10 +202,10 @@ namespace WaveLoader
 
             int stride = 4; //assume single-precision float
 
-            float[] floatData = new float[Data.Length / stride];
+            float[] floatData = new float[Data.Count / stride];
             for (int i = 0; i < floatData.Length; i++)
             {
-                floatData[i] = BitConverter.ToSingle(Data, i * stride);                
+                floatData[i] = BitConverter.ToSingle(Data.Array, i * stride + Data.Offset);                
             }
 
             return floatData;
@@ -231,10 +249,10 @@ namespace WaveLoader
                     throw new NotSupportedException();
             }
 
-            float[] floatData = new float[Data.Length / stride];
+            float[] floatData = new float[Data.Count / stride];
             for (int i = 0; i < floatData.Length; i++)
             {
-                floatData[i] = ConvertSample(Data, i * stride);
+                floatData[i] = ConvertSample(Data.Array, i * stride + Data.Offset);
             }
 
             return floatData;
