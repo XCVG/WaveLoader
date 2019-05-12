@@ -4,23 +4,27 @@
 
 ## Overview
 
-This is a dirt-simple, freely licensed little chunk o' code that can be used to load a WAV file, parse its headers, and turn it into an AudioClip in Unity.
+This is a dirt-simple, permissively licensed little chunk o' code that can be used to load a WAV file, parse its headers, and turn it into an AudioClip in Unity.
 
 ## Usage
 
 If you just want to turn a WAV file into an audio clip in Unity, that's easy:
 
-`AudioClip myAudioClip = WaveFile.Load(myByteArray).ToAudioClip("nameOfAudioClip");`
+`AudioClip myAudioClip = WaveLoader.LoadWaveToAudioClip(myByteArray);`
 
-You can also pass in a path to your WAV file:
+You can also pass in a path to your WAV file, and/or give the audio clip a name:
 
-`AudioClip myAudioClip = WaveFile.Load("Path/To/My/Sound.wav").ToAudioClip("nameOfAudioClip");`
+`AudioClip myAudioClip = WaveLoader.LoadWaveToAudioClip("Path/To/My/Sound.wav", "nameOfAudioClip");`
 
 Or, if you have no interest in AudioClips, you can create a WaveFile object:
 
 `WaveFile myWaveFile = WaveFile.Load(myByteArray);`
 
-You can't do much other than look at it yet, though.
+If you change your mind about not wanting an AudioClip:
+
+`AudioClip myAudioClip = myWaveFile.ToAudioClip();`
+
+You can't do much else other than look at it yet, though.
 
 ## Notes
 
@@ -32,13 +36,13 @@ Unlike some of the other code snippets and libraries floating around out there, 
 
 I'm pretty sure this handles 8- and 24-bit WAV files correctly; they sound correct to my ears. But there might be some off-by-one lurking here or there. The 16- and 32-bit (PCM and float) formats are easier to deal with and I'm reasonably confident those are handled correctly. 
 
-This isn't very well optimized for speed or memory. It makes a copy of the original byte array, which is safer if you want to keep the WaveFile object around, but wastes a significant amount of memory if you don't. It also does some magic with delegates in the conversion routine, which might actually be slower than conditionals but to be honest I haven't profiled it.
-
-If I have time, I'll probably do some optimization, try to improve format detection, and maybe add support for the `list` chunk.
+There have been attempts at optimization, but I wouldn't call it well-optimized. WaveFile makes a copy of the underlying byte array by default, which is safer if you want to keep the WaveFile object around, but wastes a significant amount of memory if you don't. If you use the WaveLoader.LoadWaveToAudioClip methods, those will override the default and store the same byte array, which is just fine because the WaveFile object doesn't live very long in that case anyway. It also does some magic with delegates in the conversion routine, which might actually be slower than conditionals but to be honest I haven't profiled it.
 
 ## Version History
 
 1.0.0 - Initial release.
+
+1.1.0 - Improved header parsing, optimization, and convenience methods.
 
 ## Acknowledgements
 

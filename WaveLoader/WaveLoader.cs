@@ -20,18 +20,28 @@ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 THE SOFTWARE.
 */
 
+using System.IO;
 using UnityEngine;
 
 namespace WaveLoader
 {
     /// <summary>
-    /// Wave loader extensions for Unity
+    /// Wave loader extensions and convenience methods for Unity
     /// </summary>
     /// <remarks>
     /// Separated out so you can use WaveFile for a non-Unity application.
     /// </remarks>
     public static class WaveLoader
     {
+
+        /// <summary>
+        /// Creates an Audio Clip from bytes containing wav file data
+        /// </summary>
+        public static AudioClip LoadWaveToAudioClip(byte[] data)
+        {
+            return WaveFile.Load(data, false).ToAudioClip("LoadedWave");
+        }
+
         /// <summary>
         /// Creates an Audio Clip from bytes containing wav file data
         /// </summary>
@@ -43,9 +53,25 @@ namespace WaveLoader
         /// <summary>
         /// Creates an Audio Clip from a wav file on disk
         /// </summary>
+        public static AudioClip LoadWaveToAudioClip(string path)
+        {
+            return WaveFile.Load(path).ToAudioClip($"LoadedWave ({Path.GetFileName(path)})");
+        }
+
+        /// <summary>
+        /// Creates an Audio Clip from a wav file on disk
+        /// </summary>
         public static AudioClip LoadWaveToAudioClip(string path, string name)
         {
-            return WaveFile.Load(path, false).ToAudioClip(name);
+            return WaveFile.Load(path).ToAudioClip(name);
+        }
+
+        /// <summary>
+        /// Creates an Audio Clip from a wav file in a binary asset
+        /// </summary>
+        public static AudioClip LoadWaveToAudioClip(TextAsset binaryAsset)
+        {
+            return WaveFile.Load(binaryAsset.bytes, false).ToAudioClip($"LoadedWave ({binaryAsset.name})");
         }
 
         /// <summary>
@@ -57,7 +83,15 @@ namespace WaveLoader
         }
 
         /// <summary>
-        /// Creates an Audio Clip from a wave file
+        /// Creates an Audio Clip from this wave file
+        /// </summary>
+        public static AudioClip ToAudioClip(this WaveFile waveFile)
+        {
+            return waveFile.ToAudioClip("LoadedWave");
+        }
+
+        /// <summary>
+        /// Creates an Audio Clip from this wave file
         /// </summary>
         public static AudioClip ToAudioClip(this WaveFile waveFile, string name)
         {
