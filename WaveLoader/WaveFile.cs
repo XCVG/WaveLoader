@@ -31,15 +31,7 @@ namespace WaveLoader
     /// </summary>
     public enum WaveFileFormat
     {
-        Unknown = 0, PCM = 1, IEEEFloat = 3, ALaw = 6, MuLaw = 7, Extensible = 0xFFFE
-    }
-
-    /// <summary>
-    /// The byte order (little or big endian)
-    /// </summary>
-    public enum ByteOrder
-    {
-        LittleEndian = 0, BigEndian = 1
+        Unknown = 0, PCM = 1, ADPCM = 2, IEEEFloat = 3, MPEG = 5, ALaw = 6, MuLaw = 7, Extensible = 0xFFFE
     }
 
     /// <summary>
@@ -55,6 +47,11 @@ namespace WaveLoader
         /// The format of this wave file
         /// </summary>
         public WaveFileFormat Format { get; private set; }
+
+        /// <summary>
+        /// The sub-format of this wave file (if it is an extensible wave file)
+        /// </summary>
+        public WaveFileFormat SubFormat { get; private set; }
 
         /// <summary>
         /// The number of channels in this wave file
@@ -76,11 +73,6 @@ namespace WaveLoader
         /// </summary>
         public bool Signed { get; private set; }
         
-        /// <summary>
-        /// The endianness of this wave file's data
-        /// </summary>
-        public ByteOrder Endianness { get; private set; }
-
         /// <summary>
         /// The raw wave data of this wave file
         /// </summary>
@@ -134,6 +126,15 @@ namespace WaveLoader
                     waveFile.Channels = (int)BitConverter.ToUInt16(data, i + 10);
                     waveFile.SampleRate = (int)BitConverter.ToUInt32(data, i + 12);
                     waveFile.BitsPerSample = (int)BitConverter.ToUInt16(data, i + 22);
+
+                    //handle "extensible" format codes
+                    if(waveFile.Format == WaveFileFormat.Extensible && currentChunkLength > 16)
+                    {
+                        int extensionChunkSize = (int)BitConverter.ToUInt16(data, i + 24);
+                        waveFile.BitsPerSample = (int)BitConverter.ToUInt16(data, i + 26);
+                        //we are lazy and only read the first two bytes of the extensible format GUID
+                        waveFile.SubFormat = (WaveFileFormat)BitConverter.ToUInt16(data, i + 32);
+                    }
                 }
                 else if(currentChunkID.Equals("data", StringComparison.Ordinal))
                 {
@@ -154,9 +155,6 @@ namespace WaveLoader
             //note that it *is* possible to create WAV files that break from the standard
             waveFile.Signed = waveFile.BitsPerSample > 8;
 
-            //we always assume little-endian, which is what Microsoft's documentation seems to suggest (but may not always be true)
-            waveFile.Endianness = ByteOrder.LittleEndian;
-
             return waveFile;
         }
 
@@ -168,9 +166,9 @@ namespace WaveLoader
         /// </remarks>
         public float[] GetDataFloat()
         {
-            if (Format == WaveFileFormat.IEEEFloat || Format == WaveFileFormat.Extensible)
+            if (Format == WaveFileFormat.IEEEFloat || (Format == WaveFileFormat.Extensible && SubFormat == WaveFileFormat.IEEEFloat))
                 return GetDataFloatFromFloat();
-            else if (Format == WaveFileFormat.PCM)
+            else if (Format == WaveFileFormat.PCM || (Format == WaveFileFormat.Extensible && SubFormat == WaveFileFormat.PCM))
                 return GetDataFloatFromPCM();
             else
                 throw new NotSupportedException();
@@ -181,8 +179,8 @@ namespace WaveLoader
         /// </summary>
         private float[] GetDataFloatFromFloat()
         {
-            if (BitsPerSample != 32 || Endianness != ByteOrder.LittleEndian)
-                throw new NotSupportedException(); //we don't support DP or BE
+            if (BitsPerSample != 32)
+                throw new NotSupportedException(); //we don't support DP (yet)
 
             int stride = 4; //assume single-precision float
 
@@ -200,9 +198,6 @@ namespace WaveLoader
         /// </summary>
         private float[] GetDataFloatFromPCM()
         {
-            if (Endianness != ByteOrder.LittleEndian)
-                throw new NotSupportedException(); //we don't yet support BE
-
             int stride = (BitsPerSample / 8);
 
             //this is hopefully faster than doing an if/then every iteration
