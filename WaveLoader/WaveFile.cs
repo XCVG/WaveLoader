@@ -236,8 +236,8 @@ namespace WaveLoader
                     if (!Signed)
                         throw new NotSupportedException();
                     ConvertSample = (data, index) => {
-                        int sample = (int)data[index] | (data[index + 1] << 8) | (data[index + 2] << 16);
-                        return sample / (float)8388607; //I hope this is correct, but it probably isn't
+                        int sample = data[index] | data[index + 1] << 8 | (sbyte)data[index + 2] << 16;
+                        return sample / (float)8388607;
                     };
                     break;
                 case 32:

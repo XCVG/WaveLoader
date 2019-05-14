@@ -44,6 +44,8 @@ There have been attempts at optimization, but I wouldn't call it well-optimized.
 
 1.1.0 - Improved header parsing, optimization, and convenience methods.
 
+1.1.1 - Fixed 24-bit signed WAV conversion.
+
 ## Acknowledgements
 
 Inspired by [Wav Utility for Unity](https://github.com/deadlyfingers/UnityWav), though mine is an all-new implementation.
@@ -59,6 +61,7 @@ I worked off the following sources to figure out how WAV files should be parsed:
 - <https://en.wikipedia.org/wiki/WAV>
 - <http://wavefilegem.com/how_wave_files_work.html>
 - <https://docs.rs/riff-wave/0.1.2/riff_wave/>
+- <https://stackoverflow.com/questions/17110567/converting-byte-array-to-int24>
 
 As well as a fair bit of experimentation with Audacity, ffmpeg, and a hex editor to figure out how WAV files *actually need to be parsed*.
 
