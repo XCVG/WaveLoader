@@ -166,6 +166,10 @@ namespace WaveLoader
                     //Console.WriteLine("found unidentified chunk " + currentChunkID);
                 }
 
+                //chunk boundaries are always even, if chunk length is odd there will be a padding byte (https://github.com/XCVG/WaveLoader/issues/2#issue-1276216871)
+                if (currentChunkLength % 2 == 1)
+                    currentChunkLength += 1;
+
                 i += (currentChunkLength + 8); //don't forget the chunk ID and size bytes!
             }
 
