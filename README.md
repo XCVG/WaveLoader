@@ -46,6 +46,8 @@ There have been attempts at optimization, but I wouldn't call it well-optimized.
 
 1.1.1 - Fixed 24-bit signed WAV conversion.
 
+1.1.2 - Fixed handling of chunks with padding byte.
+
 ## Acknowledgements
 
 Inspired by [Wav Utility for Unity](https://github.com/deadlyfingers/UnityWav), though mine is an all-new implementation.
